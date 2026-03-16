@@ -5,4 +5,5 @@ dist
 .env.*
 coverage
 uploads
+pnpm-debug.log
 .DS_Store
