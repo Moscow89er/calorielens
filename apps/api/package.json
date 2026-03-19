@@ -14,11 +14,13 @@
     "prisma:studio": "prisma studio"
   },
   "dependencies": {
+    "@calorielens/shared": "workspace:*",
     "@nestjs/common": "^11.0.0",
     "@nestjs/config": "^4.0.3",
     "@nestjs/core": "^11.0.0",
     "@nestjs/platform-express": "^11.0.0",
     "@prisma/client": "^6.19.2",
+    "bcrypt": "^6.0.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",
     "reflect-metadata": "^0.2.2",
@@ -28,6 +30,7 @@
     "@nestjs/cli": "^11.0.0",
     "@nestjs/schematics": "^11.0.0",
     "@nestjs/testing": "^11.0.0",
+    "@types/bcrypt": "^6.0.0",
     "@types/node": "^22.0.0",
     "prisma": "^6.19.2",
     "ts-loader": "^9.5.1",
