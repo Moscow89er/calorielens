@@ -4,19 +4,36 @@
 
 Проект собран как `pnpm` monorepo.
 
-- Приложение: `apps/api` (NestJS 11)
+- Frontend: `apps/web` (Next.js 15, App Router)
+- Backend: `apps/api` (NestJS 11)
 - Общие контракты: `packages/shared`
 - База данных: PostgreSQL + Prisma ORM
 
 ## Верхнеуровневая схема
 
-1. Клиент отправляет HTTP-запрос в NestJS API.
-2. `main.ts` применяет global prefix `api`, CORS и `ValidationPipe`.
-3. `AppModule` поднимает функциональные модули.
-4. Сервисы используют `PrismaService` для доступа к БД.
-5. Для защищенных роутов работают `JwtAuthGuard` и `RolesGuard`.
+1. Пользователь открывает web-приложение (`apps/web`).
+2. Web обращается к API (`apps/api`) по HTTP.
+3. `main.ts` в API применяет global prefix `api`, CORS и `ValidationPipe`.
+4. `AppModule` поднимает функциональные модули.
+5. Сервисы используют `PrismaService` для доступа к PostgreSQL.
+6. Защищенные endpoint'ы используют JWT guard.
 
-## Модули API
+## Frontend (`apps/web`)
+
+Текущее состояние:
+- базовый Next.js App Router;
+- корневой layout и набор базовых страниц (`/`, `/login`, `/register`, `/dashboard`);
+- зачатки слоев `shared`, `entities`, `features`, `widgets`.
+
+Ключевые файлы:
+- `apps/web/src/app/layout.tsx`
+- `apps/web/src/app/page.tsx`
+- `apps/web/src/app/login/page.tsx`
+- `apps/web/src/app/register/page.tsx`
+- `apps/web/src/app/dashboard/page.tsx`
+- `apps/web/src/app/globals.css`
+
+## Backend API (`apps/api`)
 
 ### `AuthModule`
 
@@ -25,8 +42,7 @@
 Ответственность:
 - регистрация пользователя;
 - логин и выдача JWT;
-- получение текущего пользователя;
-- role-based доступ через декоратор `@Roles(...)`.
+- endpoint текущего пользователя.
 
 Ключевые зависимости:
 - `UsersModule` (чтение/создание пользователя);
@@ -63,7 +79,7 @@
 Статус:
 - модуль подключен, но пока содержит каркас.
 
-## Общий инфраструктурный слой
+## Общий инфраструктурный слой API
 
 ### `CommonModule`
 
@@ -80,11 +96,11 @@
 
 Ответственность:
 - роли (`UserRole`);
-- JWT payload тип (`JwtPayload`);
+- JWT payload (`JwtPayload`);
 - auth- и api-типы для межпакетного использования.
 
 Принцип:
-- `apps/api` импортирует контракты из `@calorielens/shared`, чтобы избежать дублирования типов.
+- `apps/api` и `apps/web` используют контракты из `@calorielens/shared`, чтобы избежать дублирования типов.
 
 ## Данные и модель БД
 
@@ -97,26 +113,32 @@
 Связи:
 - `User 1:N Analysis` с каскадным удалением (`onDelete: Cascade`).
 
-## Конфигурация и валидация env
+## Конфигурация и env
 
-В `AppModule` обязательны:
-- `JWT_SECRET`
-- `DATABASE_URL`
+API (`AppModule`) валидирует:
+- `JWT_SECRET`;
+- `DATABASE_URL`;
+- `JWT_EXPIRES_IN` (паттерн `^\\d+(ms|s|m|h|d|w|y)$`, default `7d`);
+- `BCRYPT_SALT_ROUNDS` (int 4..31, default `10`).
 
-С дефолтами/ограничениями:
-- `JWT_EXPIRES_IN` (паттерн `^\\d+(ms|s|m|h|d|w|y)$`, default `7d`)
-- `BCRYPT_SALT_ROUNDS` (int 4..31, default `10`)
+## Текущие маршруты
 
-## Текущие API endpoints
-
-С учетом `main.ts` (`/api` prefix):
+API (с учетом префикса `/api`):
 - `GET /api/health`
 - `POST /api/auth/register`
 - `POST /api/auth/login`
 - `GET /api/auth/me` (JWT)
 
+Web:
+- `GET /`
+- `GET /login`
+- `GET /register`
+- `GET /dashboard`
+
 ## Горячие точки для изменений
 
-- Добавление новой бизнес-функции: новый модуль в `apps/api/src/modules/*` + регистрация в `app.module.ts`.
-- Расширение данных: правка `schema.prisma` + миграция + адаптация сервисов/DTO.
-- Новые роли и права: `packages/shared/src/constants/roles.ts` + `RolesGuard` + проверки в контроллерах.
+- Новая frontend-страница: `apps/web/src/app/**/page.tsx`.
+- Новая frontend-фича по слоям: `apps/web/src/features/*`, `apps/web/src/widgets/*`, `apps/web/src/entities/*`.
+- Новая backend-фича: модуль в `apps/api/src/modules/*` + регистрация в `apps/api/src/app.module.ts`.
+- Изменение данных: `apps/api/prisma/schema.prisma` + миграция + адаптация сервисов/DTO.
+- Новые общие контракты: `packages/shared/src/*`.

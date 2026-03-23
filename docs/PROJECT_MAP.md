@@ -6,20 +6,32 @@
 
 | Путь | Назначение | Критичность |
 |---|---|---|
-| `apps/api` | Основной backend на NestJS | High |
-| `apps/api/src/main.ts` | Точка входа, глобальные middleware/pipes | High |
-| `apps/api/src/app.module.ts` | Корневая композиция модулей | High |
-| `apps/api/src/common` | Инфраструктурный слой (Prisma, утилиты) | High |
-| `apps/api/src/modules/auth` | Аутентификация, JWT, guards/roles | High |
+| `apps/api` | Backend на NestJS | High |
+| `apps/web` | Frontend на Next.js (App Router) | High |
+| `apps/web/src/app` | Роуты и страницы frontend (App Router) | High |
+| `apps/web/src/shared` | Общий слой frontend | Medium |
+| `apps/web/src/entities` | Слой сущностей frontend | Medium |
+| `apps/web/src/features` | Слой фич frontend | Medium |
+| `apps/web/src/widgets` | Слой виджетов frontend | Medium |
+| `apps/api/src/main.ts` | Точка входа API, глобальные middleware/pipes | High |
+| `apps/api/src/app.module.ts` | Корневая композиция API-модулей | High |
+| `apps/api/src/common` | Инфраструктурный слой API (Prisma, утилиты) | High |
+| `apps/api/src/modules/auth` | Аутентификация, JWT | High |
 | `apps/api/src/modules/users` | Доступ к пользователям через Prisma | High |
 | `apps/api/src/modules/health` | Healthcheck endpoint | Medium |
 | `apps/api/src/modules/admin` | Каркас админ-зоны (пока без бизнес-логики) | Medium |
 | `apps/api/src/modules/analysis` | Каркас анализа (пока без бизнес-логики) | Medium |
+| `apps/web/src/app/layout.tsx` | Корневой layout frontend | High |
+| `apps/web/src/app/page.tsx` | Главная страница frontend | High |
+| `apps/web/src/app/login/page.tsx` | Страница логина frontend | High |
+| `apps/web/src/app/register/page.tsx` | Страница регистрации frontend | High |
+| `apps/web/src/app/dashboard/page.tsx` | Страница dashboard frontend | High |
 | `apps/api/prisma/schema.prisma` | Источник истины по модели БД | High |
 | `apps/api/prisma/migrations` | SQL-миграции Prisma | High |
 | `packages/shared` | Общие типы/константы между пакетами | High |
 | `README.md` | Быстрый старт и навигация по проекту | High |
 | `docs/ARCHITECTURE.md` | Архитектура и потоки данных | High |
+| `docs/OVERVIEW.md` | Автогенерируемая сводка структуры | High |
 
 ## API карта (текущее состояние)
 
@@ -32,27 +44,36 @@
 | - | `/api/admin/*` | `admin` | Каркас |
 | - | `/api/analysis/*` | `analysis` | Каркас |
 
+## Web карта (текущее состояние)
+
+| Тип | Путь | Статус |
+|---|---|---|
+| `PAGE` | `/` | Реализован |
+| `PAGE` | `/login` | Реализован |
+| `PAGE` | `/register` | Реализован |
+| `PAGE` | `/dashboard` | Реализован |
+
 ## Слои и зависимости
 
-1. Controller (`modules/*/*.controller.ts`) принимает/валидирует вход.
-2. Service (`modules/*/*.service.ts`) содержит бизнес-логику.
-3. `UsersService` и другие сервисы работают с БД через `PrismaService`.
-4. Типы ролей и JWT берутся из `packages/shared`.
+1. Web (`apps/web`) отвечает за UI и клиентские роуты.
+2. API (`apps/api`) отвечает за бизнес-логику, auth и доступ к данным.
+3. Сервисы API работают с БД через `PrismaService`.
+4. Общие контракты и роли лежат в `packages/shared`.
 
 ## Где править типовые задачи
 
 | Задача | Где править |
 |---|---|
-| Добавить endpoint | `apps/api/src/modules/<module>/<module>.controller.ts` |
-| Добавить бизнес-логику | `apps/api/src/modules/<module>/<module>.service.ts` |
+| Добавить web-страницу | `apps/web/src/app/<route>/page.tsx` |
+| Добавить endpoint API | `apps/api/src/modules/<module>/<module>.controller.ts` |
+| Добавить backend-логику | `apps/api/src/modules/<module>/<module>.service.ts` |
 | Добавить таблицу/поле в БД | `apps/api/prisma/schema.prisma` + новая миграция |
-| Изменить правила авторизации | `apps/api/src/modules/auth/guards` и `decorators` |
-| Изменить срок/секрет JWT | `apps/api/.env` + конфиг в `auth.module.ts` |
+| Изменить правила JWT/API-auth | `apps/api/src/modules/auth/*` |
 | Добавить общий тип | `packages/shared/src/*` |
 
 ## Индексация: практические правила
 
-- Считать источником истины по архитектуре: `docs/ARCHITECTURE.md`.
-- Считать источником истины по структуре: этот файл (`docs/PROJECT_MAP.md`).
-- Если добавлен новый модуль/endpoint, обновлять оба файла в том же PR.
-- Если модуль пока пустой (каркас), явно отмечать это в карте (как сейчас для `admin` и `analysis`).
+- Источник истины по архитектуре: `docs/ARCHITECTURE.md`.
+- Источник истины по структуре: `docs/PROJECT_MAP.md`.
+- Автосводка: `docs/OVERVIEW.md` (обновляется командой `pnpm overview`).
+- При изменении структуры/маршрутов обновлять helper-файлы в том же PR.

@@ -6,6 +6,7 @@ import path from "node:path";
 const ROOT = process.cwd();
 const API_ROOT = path.join(ROOT, "apps", "api");
 const MODULES_DIR = path.join(API_ROOT, "src", "modules");
+const WEB_APP_DIR = path.join(ROOT, "apps", "web", "src", "app");
 const SHARED_INDEX = path.join(ROOT, "packages", "shared", "src", "index.ts");
 const PRISMA_SCHEMA = path.join(API_ROOT, "prisma", "schema.prisma");
 const OUTPUT_FILE = path.join(ROOT, "docs", "OVERVIEW.md");
@@ -51,6 +52,29 @@ async function findPackages(baseDir) {
   return result;
 }
 
+async function walkFiles(baseDir) {
+  const files = [];
+
+  if (!(await pathExists(baseDir))) {
+    return files;
+  }
+
+  const entries = await readdir(baseDir, { withFileTypes: true });
+
+  for (const entry of entries) {
+    const fullPath = path.join(baseDir, entry.name);
+    if (entry.isDirectory()) {
+      files.push(...(await walkFiles(fullPath)));
+      continue;
+    }
+    if (entry.isFile()) {
+      files.push(fullPath);
+    }
+  }
+
+  return files;
+}
+
 function normalizeEndpointPath(parts) {
   const cleaned = parts
     .filter((part) => part !== undefined && part !== null)
@@ -59,6 +83,23 @@ function normalizeEndpointPath(parts) {
     .map((part) => part.replace(/^\/+|\/+$/g, ""));
 
   return `/${cleaned.join("/")}`.replace(/\/+/g, "/");
+}
+
+function normalizeWebRouteFromFile(filePath, type) {
+  const relative = path.relative(WEB_APP_DIR, filePath);
+  const normalized = relative.split(path.sep).join("/");
+  const rootFile = type === "page" ? "page.tsx" : "route.ts";
+  const nestedSuffix = type === "page" ? "/page.tsx" : "/route.ts";
+
+  let rawRoute = normalized;
+  if (normalized === rootFile) {
+    rawRoute = "";
+  } else if (normalized.endsWith(nestedSuffix)) {
+    rawRoute = normalized.slice(0, -nestedSuffix.length);
+  }
+
+  const route = rawRoute.length === 0 ? "/" : `/${rawRoute}`;
+  return route.replace(/\/+/g, "/");
 }
 
 async function parseControllerFile(filePath) {
@@ -149,6 +190,39 @@ async function collectModules() {
     .sort((a, b) => a.localeCompare(b));
 }
 
+async function collectWebRoutes() {
+  if (!(await pathExists(WEB_APP_DIR))) {
+    return [];
+  }
+
+  const files = await walkFiles(WEB_APP_DIR);
+  const routes = [];
+
+  for (const filePath of files) {
+    if (filePath.endsWith("/page.tsx")) {
+      routes.push({
+        kind: "PAGE",
+        route: normalizeWebRouteFromFile(filePath, "page"),
+      });
+      continue;
+    }
+
+    if (filePath.endsWith("/route.ts")) {
+      routes.push({
+        kind: "ROUTE_HANDLER",
+        route: normalizeWebRouteFromFile(filePath, "route"),
+      });
+    }
+  }
+
+  return routes.sort((a, b) => {
+    if (a.route === b.route) {
+      return a.kind.localeCompare(b.kind);
+    }
+    return a.route.localeCompare(b.route);
+  });
+}
+
 async function collectSharedExports() {
   if (!(await pathExists(SHARED_INDEX))) {
     return [];
@@ -176,11 +250,10 @@ function renderOverview({
   packages,
   modules,
   endpoints,
+  webRoutes,
   sharedExports,
   prisma,
 }) {
-  const generatedAt = new Date().toISOString();
-
   const packageLines =
     packages.length === 0
       ? ["- (не найдено)"]
@@ -203,6 +276,15 @@ function renderOverview({
           }),
         ];
 
+  const webRouteLines =
+    webRoutes.length === 0
+      ? ["| - | - |", "|---|---|"]
+      : [
+          "| Kind | Route |",
+          "|---|---|",
+          ...webRoutes.map((item) => `| \`${item.kind}\` | \`${item.route}\` |`),
+        ];
+
   const sharedLines =
     sharedExports.length === 0
       ? ["- (не найдено)"]
@@ -216,7 +298,7 @@ function renderOverview({
   return [
     "# Overview",
     "",
-    `Автосводка по проекту. Сгенерировано: \`${generatedAt}\`.`,
+    "Автосводка по проекту.",
     "",
     "## Workspaces",
     ...packageLines,
@@ -226,6 +308,9 @@ function renderOverview({
     "",
     "## API Endpoints",
     ...endpointLines,
+    "",
+    "## Web Routes (Next.js App Router)",
+    ...webRouteLines,
     "",
     "## Shared Exports (`packages/shared/src/index.ts`)",
     ...sharedLines,
@@ -238,6 +323,7 @@ function renderOverview({
     "",
     "## Sources",
     "- `apps/api/src/modules/*/*.controller.ts`",
+    "- `apps/web/src/app/**/{page.tsx,route.ts}`",
     "- `apps/api/prisma/schema.prisma`",
     "- `packages/shared/src/index.ts`",
     "- `apps/*/package.json`, `packages/*/package.json`",
@@ -246,12 +332,13 @@ function renderOverview({
 }
 
 async function main() {
-  const [appsPackages, libraryPackages, modules, endpoints, sharedExports, prisma] =
+  const [appsPackages, libraryPackages, modules, endpoints, webRoutes, sharedExports, prisma] =
     await Promise.all([
       findPackages(path.join(ROOT, "apps")),
       findPackages(path.join(ROOT, "packages")),
       collectModules(),
       collectEndpoints(),
+      collectWebRoutes(),
       collectSharedExports(),
       collectPrismaSummary(),
     ]);
@@ -260,6 +347,7 @@ async function main() {
     packages: [...appsPackages, ...libraryPackages].sort((a, b) => a.name.localeCompare(b.name)),
     modules,
     endpoints,
+    webRoutes,
     sharedExports,
     prisma,
   });
@@ -272,4 +360,3 @@ main().catch((error) => {
   process.stderr.write(`${error instanceof Error ? error.stack : String(error)}\n`);
   process.exit(1);
 });
-

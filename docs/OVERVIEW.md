@@ -1,10 +1,11 @@
 # Overview
 
-Автосводка по проекту. Сгенерировано: `2026-03-23T16:58:22.525Z`.
+Автосводка по проекту.
 
 ## Workspaces
 - `@calorielens/api` (`apps/api`) — scripts: predev, dev, prebuild, build, start, check, check:fix, prisma:format, prisma:generate, prisma:migrate, prisma:studio
 - `@calorielens/shared` (`packages/shared`) — scripts: build
+- `@calorielens/web` (`apps/web`) — scripts: dev, build, start, lint
 
 ## API Modules
 - `admin`
@@ -21,6 +22,14 @@
 | `POST` | `/api/auth/register` | `auth` |
 | `GET` | `/api/health` | `health` |
 
+## Web Routes (Next.js App Router)
+| Kind | Route |
+|---|---|
+| `PAGE` | `/` |
+| `PAGE` | `/dashboard` |
+| `PAGE` | `/login` |
+| `PAGE` | `/register` |
+
 ## Shared Exports (`packages/shared/src/index.ts`)
 - `./constants/roles`
 - `./types/api`
@@ -36,6 +45,7 @@
 
 ## Sources
 - `apps/api/src/modules/*/*.controller.ts`
+- `apps/web/src/app/**/{page.tsx,route.ts}`
 - `apps/api/prisma/schema.prisma`
 - `packages/shared/src/index.ts`
 - `apps/*/package.json`, `packages/*/package.json`

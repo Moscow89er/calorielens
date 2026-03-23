@@ -3,9 +3,9 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "predev": "pnpm --filter @calorielens/shared build",
+    "predev": "pnpm prisma:generate && pnpm --filter @calorielens/shared build",
     "dev": "nest start --watch",
-    "prebuild": "pnpm --filter @calorielens/shared build",
+    "prebuild": "pnpm prisma:generate && pnpm --filter @calorielens/shared build",
     "build": "nest build",
     "start": "node dist/main",
     "check": "biome check src prisma",
