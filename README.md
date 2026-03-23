@@ -1,102 +1,95 @@
 # CalorieLens
 
-Короткая инструкция по локальному запуску проекта.
+Backend-monorepo для сервиса анализа блюд по фото.
 
-## Что нужно перед стартом
+Сейчас в проекте реализованы базовые блоки платформы: `auth`, `users`, `health`, каркас для `analysis` и `admin`, общие типы в `packages/shared`.
 
-Перед запуском проекта нужно:
+## Цель проекта
 
-1. Запустить Docker.
-2. Убедиться, что контейнер с Postgres запущен.
-3. Установить зависимости проекта.
-4. Сгенерировать Prisma Client.
-5. Применить миграции.
-6. Запустить API.
+CalorieLens — API-сервис, который:
+- аутентифицирует пользователей;
+- управляет ролями доступа (`USER` / `ADMIN`);
+- хранит результаты анализа блюд в PostgreSQL;
+- отдает API для клиентских приложений.
 
-## 1. Запустить Docker и контейнер с базой данных
+## Быстрый старт
 
-Сначала открой Docker Desktop.
+Предусловия:
+- установлен `pnpm`;
+- запущен Docker;
+- поднят контейнер PostgreSQL (ожидается доступ к `localhost:5432`).
 
-После этого убедись, что контейнер `calorielens-postgres` находится в статусе `Running` и проброшен на порт `5432:5432`.
-
-Это нужно для того, чтобы Prisma и API могли подключиться к локальной PostgreSQL.
-
-## 2. Установить зависимости
-
-Из корня проекта выполни:
+1. Установить зависимости:
 
 ```bash
 pnpm install
 ```
 
-Эта команда устанавливает все зависимости для monorepo.
+2. Создать env-файл:
 
-## 2.1. Настроить переменные окружения
+```bash
+cp apps/api/.env.example apps/api/.env
+```
 
-В `apps/api` есть шаблон `apps/api/.env.example`. Скопируй его в `apps/api/.env` и подставь свои значения (реальные токены и пароли не коммитятся).
-При старте API значения валидируются через Joi (например, `JWT_EXPIRES_IN` должен быть в формате `15m`, `1h`, `7d`).
-
-## 3. Сгенерировать Prisma Client
-
-Из корня проекта выполни:
+3. Сгенерировать Prisma Client:
 
 ```bash
 pnpm --filter @calorielens/api prisma:generate
 ```
 
-Эта команда генерирует Prisma Client на основе `schema.prisma`, чтобы приложение могло работать с базой данных.
-
-## 4. Применить миграции
-
-Из корня проекта выполни:
+4. Применить миграции:
 
 ```bash
 pnpm --filter @calorielens/api prisma:migrate
 ```
 
-Эта команда применяет миграции к базе данных и создает или обновляет таблицы.
-
-Если это первый запуск, Prisma может попросить указать имя миграции. Например:
-
-```bash
-init
-```
-
-## 5. Запустить API
-
-Из корня проекта выполни:
+5. Запустить API:
 
 ```bash
 pnpm --filter @calorielens/api dev
 ```
 
-Эта команда запускает backend в режиме разработки с автоматическим перезапуском при изменении файлов.
+API запускается по умолчанию на `http://localhost:3001` с глобальным префиксом `api` (`http://localhost:3001/api/...`).
 
-## Дополнительно
+## Ключевые сценарии
 
-### Открыть Prisma Studio
+- Регистрация: `POST /api/auth/register`
+- Логин: `POST /api/auth/login`
+- Текущий пользователь: `GET /api/auth/me` (JWT)
+- Проверка роли ADMIN: `GET /api/auth/admin-only` (JWT + роль `ADMIN`)
+- Healthcheck: `GET /api/health`
+
+## Структура репозитория
+
+- `apps/api` — NestJS API (основная серверная логика)
+- `apps/api/prisma` — схема БД и миграции
+- `packages/shared` — общие типы и константы для backend/frontend
+- `docs/ARCHITECTURE.md` — обзор архитектуры и модулей
+- `docs/PROJECT_MAP.md` — карта файлов и зон ответственности
+
+## Где искать логику
+
+- Точка входа приложения: `apps/api/src/main.ts`
+- Корневая сборка модулей: `apps/api/src/app.module.ts`
+- Аутентификация и JWT: `apps/api/src/modules/auth`
+- Работа с пользователями: `apps/api/src/modules/users`
+- Доступ к БД (Prisma): `apps/api/src/common/prisma/prisma.service.ts`
+- Модель данных: `apps/api/prisma/schema.prisma`
+
+## Документация для индексации
+
+- Архитектура: `docs/ARCHITECTURE.md`
+- Карта проекта: `docs/PROJECT_MAP.md`
+- Автосводка (генерируется): `docs/OVERVIEW.md`
+
+## Быстрая автосводка проекта
 
 ```bash
-pnpm --filter @calorielens/api prisma:studio
+pnpm overview
 ```
 
-Эта команда открывает Prisma Studio для просмотра и редактирования данных в базе через UI.
-
-## Быстрый сценарий запуска
-
-```bash
-pnpm install
-pnpm --filter @calorielens/api prisma:generate
-pnpm --filter @calorielens/api prisma:migrate
-pnpm --filter @calorielens/api dev
-```
-
-## Возможные проблемы
-
-### Prisma не может подключиться к базе
-
-Если появляется ошибка вида `P1001: Can't reach database server at localhost:5432`, проверь:
-
-* запущен ли Docker Desktop;
-* запущен ли контейнер `calorielens-postgres`;
-* доступен ли порт `5432`.
+Команда обновляет `docs/OVERVIEW.md` на основе текущего состояния кода:
+- workspace-пакеты;
+- модули и endpoints API;
+- shared-экспорты;
+- Prisma models/enums.

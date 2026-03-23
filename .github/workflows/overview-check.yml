@@ -1,0 +1,40 @@
+name: Overview Check
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  overview:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.32.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Regenerate overview
+        run: pnpm overview
+
+      - name: Validate overview is up to date
+        run: |
+          git diff --exit-code -- docs/OVERVIEW.md || {
+            echo "docs/OVERVIEW.md is outdated. Run 'pnpm overview' and commit the result.";
+            exit 1;
+          }
+

@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "pnpm -r dev",
     "build": "pnpm -r build",
+    "overview": "node scripts/overview.mjs",
+    "overview:check": "pnpm overview && git diff --exit-code -- docs/OVERVIEW.md",
     "check": "biome check .",
     "check:fix": "biome check . --write",
     "format": "biome format . --write"
