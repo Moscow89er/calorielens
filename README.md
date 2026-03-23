@@ -56,7 +56,6 @@ API запускается по умолчанию на `http://localhost:3001` 
 - Регистрация: `POST /api/auth/register`
 - Логин: `POST /api/auth/login`
 - Текущий пользователь: `GET /api/auth/me` (JWT)
-- Проверка роли ADMIN: `GET /api/auth/admin-only` (JWT + роль `ADMIN`)
 - Healthcheck: `GET /api/health`
 
 ## Структура репозитория

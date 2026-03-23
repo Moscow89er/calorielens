@@ -114,7 +114,6 @@
 - `POST /api/auth/register`
 - `POST /api/auth/login`
 - `GET /api/auth/me` (JWT)
-- `GET /api/auth/admin-only` (JWT + `ADMIN`)
 
 ## Горячие точки для изменений
 

@@ -29,7 +29,6 @@
 | `POST` | `/api/auth/register` | `auth` | Реализован |
 | `POST` | `/api/auth/login` | `auth` | Реализован |
 | `GET` | `/api/auth/me` | `auth` | Реализован (JWT) |
-| `GET` | `/api/auth/admin-only` | `auth` | Реализован (JWT + ADMIN) |
 | - | `/api/admin/*` | `admin` | Каркас |
 | - | `/api/analysis/*` | `analysis` | Каркас |
 

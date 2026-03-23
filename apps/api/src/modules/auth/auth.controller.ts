@@ -1,15 +1,12 @@
 import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import { CurrentUser } from './decorators/current-user.decorator';
 import { AuthService } from './auth.service';
-import { RegisterDto } from './dto/register.dto';
 import { AuthUserResponseDto } from './dto/auth-user-response.dto';
 import { LoginDto } from './dto/login.dto';
 import { LoginResponseDto } from './dto/login-response.dto';
+import { RegisterDto } from './dto/register.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
-import { CurrentUser } from './decorators/current-user.decorator';
-import { CurrentUser as CurrentUserType } from "./types/current-user.type";
-import { RolesGuard } from './guards/roles.guards';
-import { UserRole } from '@calorielens/shared';
-import { Roles } from './decorators/roles.decorator';
+import { CurrentUser as CurrentUserType } from './types/current-user.type';
 
 @Controller('auth')
 export class AuthController {
@@ -32,16 +29,6 @@ export class AuthController {
       id: user.id,
       email: user.email,
       role: user.role,
-    };
-  }
-
-  @Get('admin-only')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN)
-  adminOnly(@CurrentUser() user: CurrentUserType) {
-    return {
-      message: 'Admin access granted',
-      user,
     };
   }
 }
