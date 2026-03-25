@@ -1,5 +1,5 @@
+import type { UserRole } from '@calorielens/shared';
 import { apiGet, apiPost } from '@/shared/api/client';
-import { UserRole } from '@calorielens/shared';
 
 export type AuthUser = {
   id: string;
@@ -19,13 +19,17 @@ export type LoginResponse = {
   user: AuthUser;
 };
 
-export function register(payload: RegisterRequest) {
+export function registerUser(payload: RegisterRequest) {
   return apiPost<AuthUser, RegisterRequest>('/auth/register', payload);
 }
 
-export function login(payload: LoginRequest) {
+export const register = registerUser;
+
+export function loginUser(payload: LoginRequest) {
   return apiPost<LoginResponse, LoginRequest>('/auth/login', payload);
 }
+
+export const login = loginUser;
 
 export function getMe() {
   return apiGet<AuthUser>('/auth/me', { auth: true });

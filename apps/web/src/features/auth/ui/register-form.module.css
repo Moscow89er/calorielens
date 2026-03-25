@@ -1,0 +1,93 @@
+.card {
+  width: min(100%, 420px);
+  padding: 2rem;
+  border: 1px solid #d9d9d9;
+  border-radius: 12px;
+  background: #fff;
+  display: grid;
+  gap: 1rem;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.subtitle {
+  margin: 0;
+  color: #4f4f4f;
+}
+
+.form {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.field {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.label {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.input {
+  width: 100%;
+  border: 1px solid #bdbdbd;
+  border-radius: 8px;
+  padding: 0.6rem 0.75rem;
+  font-size: 1rem;
+}
+
+.input:focus {
+  outline: 2px solid #9bd3ff;
+  outline-offset: 1px;
+  border-color: #2f80ed;
+}
+
+.error {
+  margin: 0;
+  color: #b00020;
+  font-size: 0.85rem;
+}
+
+.serverError {
+  margin: 0;
+  padding: 0.75rem;
+  border-radius: 8px;
+  background: #fff1f3;
+  border: 1px solid #ffcdd6;
+  color: #9b001f;
+  font-size: 0.9rem;
+}
+
+.submit {
+  margin-top: 0.25rem;
+  border: none;
+  border-radius: 8px;
+  padding: 0.7rem 0.85rem;
+  background: #0f5bd8;
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.submit:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.footer {
+  margin: 0;
+  color: #444;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 480px) {
+  .card {
+    padding: 1.25rem;
+  }
+}

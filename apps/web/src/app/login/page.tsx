@@ -1,3 +1,9 @@
+import { LoginForm } from '@/features/auth/ui/login-form';
+
 export default function LoginPage() {
-  return <main>Login page scaffold</main>;
+  return (
+    <main>
+      <LoginForm />
+    </main>
+  );
 }
