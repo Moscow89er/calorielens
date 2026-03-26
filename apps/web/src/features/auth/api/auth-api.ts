@@ -1,11 +1,7 @@
-import type { UserRole } from '@calorielens/shared';
+import type { CurrentUser } from '@/entities/user/model/types';
 import { apiGet, apiPost } from '@/shared/api/client';
 
-export type AuthUser = {
-  id: string;
-  email: string;
-  role: UserRole;
-};
+export type AuthUser = CurrentUser;
 
 export type RegisterRequest = {
   email: string;
@@ -31,6 +27,8 @@ export function loginUser(payload: LoginRequest) {
 
 export const login = loginUser;
 
-export function getMe() {
-  return apiGet<AuthUser>('/auth/me', { auth: true });
+export function getCurrentUser() {
+  return apiGet<CurrentUser>('/auth/me', { auth: true });
 }
+
+export const getMe = getCurrentUser;

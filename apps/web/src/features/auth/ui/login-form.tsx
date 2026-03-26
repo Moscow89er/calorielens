@@ -2,8 +2,9 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { type FormEvent, useState } from 'react';
+import { type FormEvent, useEffect, useState } from 'react';
 import { loginUser } from '@/features/auth/api/auth-api';
+import { useAuth } from '@/features/auth/lib/use-auth';
 import type { LoginFormErrors, LoginFormValues } from '@/features/auth/model/types';
 import { validateLoginForm } from '@/features/auth/model/validators';
 import styles from '@/features/auth/ui/register-form.module.css';
@@ -25,10 +26,17 @@ function getErrorMessage(error: unknown): string {
 
 export function LoginForm() {
   const router = useRouter();
+  const { isAuthenticated, isLoading, refreshUser } = useAuth();
   const [values, setValues] = useState(INITIAL_VALUES);
   const [errors, setErrors] = useState<LoginFormErrors>({});
   const [serverError, setServerError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!isLoading && isAuthenticated) {
+      router.replace('/dashboard');
+    }
+  }, [isAuthenticated, isLoading, router]);
 
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -47,6 +55,7 @@ export function LoginForm() {
     try {
       const response = await loginUser(values);
       setAccessToken(response.accessToken);
+      await refreshUser();
       router.push('/dashboard');
     } catch (error) {
       setServerError(getErrorMessage(error));

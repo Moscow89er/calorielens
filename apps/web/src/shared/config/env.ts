@@ -1,4 +1,4 @@
-const DEFAULT_LOCAL_API_URL = 'http://localhost:3001';
+const DEFAULT_LOCAL_API_URL = 'http://localhost:3001/api';
 
 function normalizeApiBaseUrl(rawUrl: string): string {
   const trimmed = rawUrl.trim();
