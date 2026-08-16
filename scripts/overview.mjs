@@ -122,7 +122,7 @@ async function parseControllerFile(filePath) {
       continue;
     }
 
-    if (pendingMethod && /^\s*[a-zA-Z0-9_]+\s*\(/.test(line)) {
+    if (pendingMethod && /^\s*(?:async\s+)?[a-zA-Z0-9_]+\s*\(/.test(line)) {
       endpoints.push({
         method: pendingMethod,
         path: normalizeEndpointPath(["api", controllerBasePath, pendingPath]),

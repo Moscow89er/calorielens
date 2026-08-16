@@ -5,6 +5,8 @@ export type ApiErrorCode =
   | 'NOT_FOUND'
   | 'CONFLICT'
   | 'INVALID_CREDENTIALS'
+  | 'ANALYSIS_TIMEOUT'
+  | 'ANALYSIS_UNAVAILABLE'
   | 'INTERNAL_SERVER_ERROR';
 
 export type ApiErrorResponse = {

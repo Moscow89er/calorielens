@@ -2,7 +2,7 @@
 
 Monorepo для сервиса анализа блюд по фото: backend API + frontend web.
 
-Сейчас в проекте реализованы базовые блоки платформы: API-модули `auth`, `users`, `health`, каркас для `analysis` и `admin`, базовый Next.js frontend, а также общие типы в `packages/shared`.
+Сейчас backend поддерживает аутентификацию и полный сценарий анализа фотографии: загрузку изображения, получение результата, приватную историю и удаление. Анализатор подключается через общий контракт `DishAnalyzer`: бесплатный demo adapter работает по умолчанию, реальный vision adapter включается через env. Web пока содержит auth-сценарий; интерфейс анализа будет следующим законченным этапом.
 
 ## Цель проекта
 
@@ -12,8 +12,8 @@ CalorieLens — система из двух приложений:
 
 API отвечает за:
 - аутентификацию пользователей;
-- управление ролями доступа (`USER` / `ADMIN`);
 - хранение результатов анализа блюд в PostgreSQL;
+- приватное хранение загруженных изображений;
 - отдачу API для клиентских приложений.
 
 ## Быстрый старт
@@ -34,6 +34,8 @@ pnpm install
 ```bash
 cp apps/api/.env.example apps/api/.env
 ```
+
+По умолчанию используется `DISH_ANALYZER=demo`, поэтому API-ключ не требуется.
 
 3. Сгенерировать Prisma Client:
 
@@ -68,6 +70,11 @@ Web запускается по умолчанию на `http://localhost:3000`.
 - Регистрация: `POST /api/auth/register`
 - Логин: `POST /api/auth/login`
 - Текущий пользователь: `GET /api/auth/me` (JWT)
+- Загрузить фотографию: `POST /api/analyses` (JWT, multipart field `image`)
+- История пользователя: `GET /api/analyses` (JWT, cursor pagination)
+- Результат анализа: `GET /api/analyses/:id` (JWT)
+- Приватное изображение: `GET /api/analyses/:id/image` (JWT)
+- Удалить анализ: `DELETE /api/analyses/:id` (JWT)
 - Healthcheck: `GET /api/health`
 - Web главная страница: `GET /`
 - Web login: `GET /login`
@@ -94,12 +101,28 @@ Web запускается по умолчанию на `http://localhost:3000`.
 - Корневая сборка API-модулей: `apps/api/src/app.module.ts`
 - Аутентификация и JWT: `apps/api/src/modules/auth`
 - Работа с пользователями: `apps/api/src/modules/users`
+- Анализ изображений и история: `apps/api/src/modules/analysis`
 - Доступ к БД (Prisma): `apps/api/src/common/prisma/prisma.service.ts`
 - Модель данных: `apps/api/prisma/schema.prisma`
 - Web layout: `apps/web/src/app/layout.tsx`
 - Web главная страница: `apps/web/src/app/page.tsx`
 - Web страницы auth: `apps/web/src/app/login/page.tsx`, `apps/web/src/app/register/page.tsx`
 - Web dashboard: `apps/web/src/app/dashboard/page.tsx`
+
+## Режимы анализа и хранение файлов
+
+- `DISH_ANALYZER=demo` — бесплатный детерминированный adapter для локального запуска, тестов и portfolio-demo. Он позволяет проверить полный backend analysis flow без платного API-ключа, но не выполняет настоящее распознавание изображения.
+- `DISH_ANALYZER=vision` — реальный анализ через OpenAI Responses API. В этом режиме требуется `VISION_API_KEY`; timeout ограничен значением `VISION_TIMEOUT_MS` (по умолчанию 15 секунд).
+
+Изображения хранятся локально в `UPLOAD_DIR` и выдаются только через endpoint с проверкой владельца. Это сознательное ограничение portfolio-MVP: текущая версия не использует S3 или другое внешнее object storage.
+
+## Backend-тесты
+
+```bash
+pnpm --filter @calorielens/api test
+```
+
+Unit-тесты проверяют доменную логику и оба adapter'а. HTTP integration-тесты подменяют guard фиксированным пользователем и не дублируют временный Bearer flow, который будет заменен полноценной cookie-сессией на следующем этапе.
 
 ## Документация для индексации
 

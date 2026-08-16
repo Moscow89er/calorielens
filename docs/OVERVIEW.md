@@ -3,12 +3,11 @@
 Автосводка по проекту.
 
 ## Workspaces
-- `@calorielens/api` (`apps/api`) — scripts: predev, dev, prebuild, build, start, check, check:fix, prisma:format, prisma:generate, prisma:migrate, prisma:studio
+- `@calorielens/api` (`apps/api`) — scripts: predev, dev, prebuild, build, start, check, check:fix, test, test:watch, prisma:format, prisma:generate, prisma:migrate, prisma:studio
 - `@calorielens/shared` (`packages/shared`) — scripts: build
 - `@calorielens/web` (`apps/web`) — scripts: dev, build, start, lint
 
 ## API Modules
-- `admin`
 - `analysis`
 - `auth`
 - `health`
@@ -17,6 +16,11 @@
 ## API Endpoints
 | Method | Path | Module |
 |---|---|---|
+| `GET` | `/api/analyses` | `analysis` |
+| `POST` | `/api/analyses` | `analysis` |
+| `DELETE` | `/api/analyses/:id` | `analysis` |
+| `GET` | `/api/analyses/:id` | `analysis` |
+| `GET` | `/api/analyses/:id/image` | `analysis` |
 | `POST` | `/api/auth/login` | `auth` |
 | `GET` | `/api/auth/me` | `auth` |
 | `POST` | `/api/auth/register` | `auth` |
@@ -31,7 +35,9 @@
 | `PAGE` | `/register` |
 
 ## Shared Exports (`packages/shared/src/index.ts`)
+- `./constants/analysis-source`
 - `./constants/roles`
+- `./types/analysis`
 - `./types/api`
 - `./types/auth`
 - `./types/jwt-payload.type`
@@ -42,6 +48,7 @@
 - `Analysis`
 ### Enums
 - `UserRole`
+- `AnalysisSource`
 
 ## Sources
 - `apps/api/src/modules/*/*.controller.ts`

@@ -19,8 +19,7 @@
 | `apps/api/src/modules/auth` | Аутентификация, JWT | High |
 | `apps/api/src/modules/users` | Доступ к пользователям через Prisma | High |
 | `apps/api/src/modules/health` | Healthcheck endpoint | Medium |
-| `apps/api/src/modules/admin` | Каркас админ-зоны (пока без бизнес-логики) | Medium |
-| `apps/api/src/modules/analysis` | Каркас анализа (пока без бизнес-логики) | Medium |
+| `apps/api/src/modules/analysis` | Анализ изображений, история, adapters и приватное файловое хранилище | High |
 | `apps/web/src/app/layout.tsx` | Корневой layout frontend | High |
 | `apps/web/src/app/page.tsx` | Главная страница frontend | High |
 | `apps/web/src/app/login/page.tsx` | Страница логина frontend | High |
@@ -41,8 +40,11 @@
 | `POST` | `/api/auth/register` | `auth` | Реализован |
 | `POST` | `/api/auth/login` | `auth` | Реализован |
 | `GET` | `/api/auth/me` | `auth` | Реализован (JWT) |
-| - | `/api/admin/*` | `admin` | Каркас |
-| - | `/api/analysis/*` | `analysis` | Каркас |
+| `POST` | `/api/analyses` | `analysis` | Реализован (JWT, multipart) |
+| `GET` | `/api/analyses` | `analysis` | Реализован (JWT, cursor pagination) |
+| `GET` | `/api/analyses/:id` | `analysis` | Реализован (JWT, owner-only) |
+| `GET` | `/api/analyses/:id/image` | `analysis` | Реализован (JWT, owner-only) |
+| `DELETE` | `/api/analyses/:id` | `analysis` | Реализован (JWT, owner-only) |
 
 ## Web карта (текущее состояние)
 

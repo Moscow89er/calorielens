@@ -16,7 +16,8 @@
 3. `main.ts` в API применяет global prefix `api`, CORS и `ValidationPipe`.
 4. `AppModule` поднимает функциональные модули.
 5. Сервисы используют `PrismaService` для доступа к PostgreSQL.
-6. Защищенные endpoint'ы используют JWT guard.
+6. Защищенные endpoint'ы используют JWT guard и фильтрацию по владельцу ресурса.
+7. `AnalysisService` вызывает выбранный `DishAnalyzer`, сохраняет результат в PostgreSQL, а изображение — в приватное локальное хранилище.
 
 ## Frontend (`apps/web`)
 
@@ -65,19 +66,22 @@
 Ответственность:
 - технический healthcheck endpoint.
 
-### `AdminModule`
-
-Файлы: `apps/api/src/modules/admin/*`
-
-Статус:
-- модуль подключен в `AppModule`, но бизнес-методы пока не реализованы.
-
 ### `AnalysisModule`
 
 Файлы: `apps/api/src/modules/analysis/*`
 
-Статус:
-- модуль подключен, но пока содержит каркас.
+Ответственность:
+- прием JPEG, PNG и WebP до 5 МБ;
+- анализ изображения через общий контракт `DishAnalyzer`;
+- cursor pagination истории текущего пользователя;
+- приватное чтение изображения и удаление результата;
+- очистка сохраненного файла, если запись в PostgreSQL завершилась ошибкой.
+
+Адаптеры:
+- `DemoDishAnalyzer` — бесплатный детерминированный режим без внешней сети;
+- `VisionDishAnalyzer` — OpenAI Responses API с JSON Schema, конечным timeout и преобразованием внешних ошибок в доменные.
+
+Provider-specific статусы, ответы и сетевые ошибки не выходят за границы `VisionDishAnalyzer`.
 
 ## Общий инфраструктурный слой API
 
@@ -88,6 +92,7 @@
 Ответственность:
 - глобальный `PrismaService`;
 - единая точка подключения к PostgreSQL;
+- глобальный API exception filter с единым error envelope;
 - утилиты инфраструктуры (`role-mapper`).
 
 ## Слой shared-контрактов
@@ -97,7 +102,7 @@
 Ответственность:
 - роли (`UserRole`);
 - JWT payload (`JwtPayload`);
-- auth- и api-типы для межпакетного использования.
+- auth-, analysis- и api-типы для межпакетного использования.
 
 Принцип:
 - `apps/api` и `apps/web` используют контракты из `@calorielens/shared`, чтобы избежать дублирования типов.
@@ -108,7 +113,7 @@
 
 Сущности:
 - `User`: email, passwordHash, role, createdAt;
-- `Analysis`: ссылка на `User`, путь к изображению, название блюда, калории, confidence, createdAt.
+- `Analysis`: ссылка на `User`, приватный ключ и MIME-тип изображения, название блюда, калории, confidence, источник результата и createdAt.
 
 Связи:
 - `User 1:N Analysis` с каскадным удалением (`onDelete: Cascade`).
@@ -120,6 +125,10 @@ API (`AppModule`) валидирует:
 - `DATABASE_URL`;
 - `JWT_EXPIRES_IN` (паттерн `^\\d+(ms|s|m|h|d|w|y)$`, default `7d`);
 - `BCRYPT_SALT_ROUNDS` (int 4..31, default `10`).
+- `DISH_ANALYZER` (`demo` или `vision`, default `demo`);
+- `VISION_API_KEY` (обязателен только для `vision`);
+- `VISION_API_URL`, `VISION_MODEL`, `VISION_TIMEOUT_MS`;
+- `UPLOAD_DIR` для локального хранилища изображений.
 
 ## Текущие маршруты
 
@@ -128,6 +137,11 @@ API (с учетом префикса `/api`):
 - `POST /api/auth/register`
 - `POST /api/auth/login`
 - `GET /api/auth/me` (JWT)
+- `POST /api/analyses` (JWT, multipart)
+- `GET /api/analyses` (JWT)
+- `GET /api/analyses/:id` (JWT)
+- `GET /api/analyses/:id/image` (JWT)
+- `DELETE /api/analyses/:id` (JWT)
 
 Web:
 - `GET /`
@@ -142,3 +156,9 @@ Web:
 - Новая backend-фича: модуль в `apps/api/src/modules/*` + регистрация в `apps/api/src/app.module.ts`.
 - Изменение данных: `apps/api/prisma/schema.prisma` + миграция + адаптация сервисов/DTO.
 - Новые общие контракты: `packages/shared/src/*`.
+
+## Сознательные ограничения MVP
+
+- Локальное файловое хранилище подходит для portfolio-demo и запуска одним экземпляром API, но не предназначено для горизонтального масштабирования.
+- S3 и другие внешние object storage не добавляются в scope проекта.
+- Demo adapter демонстрирует pipeline, а не настоящее распознавание изображения; источник результата сохраняется и возвращается API.

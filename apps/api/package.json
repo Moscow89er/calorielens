@@ -10,6 +10,8 @@
     "start": "node dist/main",
     "check": "biome check src prisma",
     "check:fix": "biome check src prisma --write",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "prisma:format": "prisma format",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
@@ -41,9 +43,12 @@
     "@types/express": "^5.0.6",
     "@types/node": "^22.0.0",
     "@types/passport-jwt": "^4.0.1",
+    "@types/supertest": "^7.2.1",
     "prisma": "^6.19.2",
+    "supertest": "^7.2.2",
     "ts-loader": "^9.5.1",
     "ts-node": "^10.9.2",
-    "typescript": "^5.9.0"
+    "typescript": "^5.9.0",
+    "vitest": "^4.1.10"
   }
 }

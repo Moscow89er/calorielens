@@ -12,6 +12,11 @@ enum UserRole {
   ADMIN
 }
 
+enum AnalysisSource {
+  DEMO
+  VISION
+}
+
 model User {
   id           String     @id @default(cuid())
   email        String     @unique
@@ -24,17 +29,18 @@ model User {
 }
 
 model Analysis {
-  id         String   @id @default(cuid())
-  userId     String
-  imagePath  String
-  dishName   String
-  calories   Int
-  confidence Float
-  createdAt  DateTime @default(now())
+  id            String         @id @default(cuid())
+  userId        String
+  imageKey      String
+  imageMimeType String
+  dishName      String
+  calories      Int
+  confidence    Float
+  source        AnalysisSource
+  createdAt     DateTime       @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([userId])
-  @@index([createdAt])
+  @@index([userId, createdAt(sort: Desc), id(sort: Desc)])
   @@map("analyses")
 }
